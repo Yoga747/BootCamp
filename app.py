@@ -43,6 +43,22 @@ def load_data():
 df = load_data()
 
 # ========================================
+# KATEGORISASI USIA
+# ========================================
+def categorize_age(age):
+    if age < 18:
+        return "<18"
+    elif 18 <= age <= 22:
+        return "18–22"
+    elif 23 <= age <= 26:
+        return "23–26"
+    else:
+        return "27+"
+
+df['Age_Group'] = df['Age'].apply(categorize_age)
+
+
+# ========================================
 # HEADER
 # ========================================
 st.markdown(
@@ -101,6 +117,7 @@ filtered_df = df[
 if filtered_df.empty:
     st.warning("⚠️ Tidak ada data yang sesuai dengan filter")
     st.stop()
+filtered_df['Age'] = filtered_df['Age'].astype(int)
 
 # ========================================
 # KPI
@@ -227,6 +244,150 @@ with tab3:
         x="Conflicts_Over_Social_Media",
         title="Konflik yang Terjadi Akibat Media Sosial"
     )
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown("---")
+    st.subheader("📊 Skor Kesehatan Mental & Kecanduan Berdasarkan Kelompok Usia")
+
+    st.markdown("""
+    Analisis ini menunjukkan bagaimana **skor kesehatan mental (1–10)** dan
+    **skor kecanduan media sosial (1–10)** bervariasi berdasarkan **kelompok usia mahasiswa**.
+    """)
+
+    # Rata-rata Mental Health Score per Usia
+    mental_by_age = (
+        filtered_df
+        .groupby("Age_Group")["Mental_Health_Score"]
+        .mean()
+        .round(2)
+        .reset_index()
+    )
+
+    fig = px.bar(
+        mental_by_age,
+        x="Age_Group",
+        y="Mental_Health_Score",
+        color="Age_Group",
+        text="Mental_Health_Score",
+        title="Rata-rata Skor Kesehatan Mental (1–10) Berdasarkan Kelompok Usia",
+        labels={
+            "Age_Group": "Kelompok Usia",
+            "Mental_Health_Score": "Rata-rata Skor Kesehatan Mental"
+        }
+    )
+
+    fig.update_traces(textposition="outside")
+    st.plotly_chart(fig, use_container_width=True)
+
+    # Rata-rata Addiction Score per Usia
+    addicted_by_age = (
+        filtered_df
+        .groupby("Age_Group")["Addicted_Score"]
+        .mean()
+        .round(2)
+        .reset_index()
+    )
+
+    fig = px.bar(
+        addicted_by_age,
+        x="Age_Group",
+        y="Addicted_Score",
+        color="Age_Group",
+        text="Addicted_Score",
+        title="Rata-rata Skor Kecanduan Media Sosial (1–10) Berdasarkan Kelompok Usia",
+        labels={
+            "Age_Group": "Kelompok Usia",
+            "Addicted_Score": "Rata-rata Skor Kecanduan Media Sosial"
+        }
+    )
+
+    fig.update_traces(textposition="outside")
+    st.plotly_chart(fig, use_container_width=True)
+
+
+    st.subheader("📋 Rata-rata Skor per Kelompok Usia")
+
+    age_summary = (
+        filtered_df
+        .groupby("Age_Group")[["Mental_Health_Score", "Addicted_Score"]]
+        .mean()
+        .round(2)
+        .reset_index()
+    )
+
+    st.dataframe(age_summary, use_container_width=True)
+
+    st.markdown("---")
+    st.subheader("📊 Distribusi Usia Mahasiswa – Undergraduate")
+
+    undergrad_df = filtered_df[filtered_df['Academic_Level'] == 'Undergraduate']
+
+    age_count_undergrad = (
+        undergrad_df
+        .groupby('Age')
+        .size()
+        .reset_index(name='Jumlah Mahasiswa')
+    )
+
+    fig = px.bar(
+        age_count_undergrad,
+        x='Age',
+        y='Jumlah Mahasiswa',
+        title='Distribusi Jumlah Mahasiswa Undergraduate Berdasarkan Usia',
+        labels={
+            'Age': 'Usia',
+            'Jumlah Mahasiswa': 'Jumlah Mahasiswa'
+        }
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.subheader("📊 Distribusi Usia Mahasiswa – Graduate")
+
+    graduate_df = filtered_df[filtered_df['Academic_Level'] == 'Graduate']
+
+    age_count_graduate = (
+        graduate_df
+        .groupby('Age')
+        .size()
+        .reset_index(name='Jumlah Mahasiswa')
+    )
+
+    fig = px.bar(
+        age_count_graduate,
+        x='Age',
+        y='Jumlah Mahasiswa',
+        title='Distribusi Jumlah Mahasiswa Graduate Berdasarkan Usia',
+        labels={
+            'Age': 'Usia',
+            'Jumlah Mahasiswa': 'Jumlah Mahasiswa'
+        }
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.subheader("📊 Distribusi Usia Mahasiswa – High School")
+
+    highschool_df = filtered_df[filtered_df['Academic_Level'] == 'High School']
+
+    age_count_highschool = (
+        highschool_df
+        .groupby('Age')
+        .size()
+        .reset_index(name='Jumlah Mahasiswa')
+    )
+
+    fig = px.bar(
+        age_count_highschool,
+        x='Age',
+        y='Jumlah Mahasiswa',
+        title='Distribusi Jumlah Mahasiswa High School Berdasarkan Usia',
+        labels={
+            'Age': 'Usia',
+            'Jumlah Mahasiswa': 'Jumlah Mahasiswa'
+        }
+    )
+
     st.plotly_chart(fig, use_container_width=True)
 
 # ========================================
